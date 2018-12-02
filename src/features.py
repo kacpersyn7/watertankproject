@@ -8,7 +8,7 @@ Created on Wed Nov 28 02:38:21 2018
 from pyts.decomposition import SSA
 from scipy import signal
 from sklearn.preprocessing import StandardScaler
-my = result['004'][['h1','h2', 'h3']][700:880]
+my = result['004'][['h1', 'h2', 'h3']][700:880]
 features = my.values
 #pca = PCA(n_components=1)
 ssa = SSA(window_size = 100)
