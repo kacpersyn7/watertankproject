@@ -6,7 +6,7 @@ import os
 
 
 class LoadData:
-    def __init__(self, path='../experiments'):
+    def __init__(self, path='../experiments/'):
         self.path = path
         self.experiments_paths = []
         self.get_experiments_paths()
@@ -49,8 +49,8 @@ class LoadData:
 
     def build_data_frame(self, experiments_to_exclude=[]):
         # frames = [self.load_mat_file(file_path) for file_path in self.experiments_paths]
-        frames = [file for file in map(self.load_mat_file, self.experiments_paths)
-                  if file not in experiments_to_exclude[-1]]
+        frames = [data for data in map(self.load_mat_file, self.experiments_paths)
+                  if data[-1] not in experiments_to_exclude]
 
         frames_data = [frame[0] for frame in frames]
         frames_numbers = [frame[1] for frame in frames]
