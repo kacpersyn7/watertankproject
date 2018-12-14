@@ -1,49 +1,67 @@
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import minmax_scale
+import matplotlib.pyplot as plt
 
 class BAFFLE:
-    def __init__(self, lag_time, window_size, alpha, k, dimensions=3):
+    def __init__(self, lag_time, window_size, alpha, k, dimensions=2):
         self.lag_time = lag_time
         self.window_size = window_size
         self.alpha = alpha
         self.dimensions = dimensions
+        self.pca = PCA(n_components=dimensions)
         self.E = np.zeros(shape=dimensions)
         self.W = np.zeros(shape=dimensions)
         self.mean = np.zeros(shape=dimensions)
         self.std = np.zeros(shape=dimensions)
         self.y = np.zeros(shape=dimensions)
         self.k = k
-        self.lag_data = np.zeros(shape=dimensions)
-
-    def normalize_df(self, df):
-        normalized_df = (df - df.min()) / (df.max() - df.min())
-        return normalized_df
 
     def update_e_w(self, y):
-        self.W = (np.abs(y - self.mean) > (self.k+3)*self.std)
-        self.E = (np.abs(y - self.mean) > 3 * self.std)
+        self.W = np.squeeze(np.abs(y - self.mean) > (self.k+3)*self.std)
+        self.E = np.squeeze(np.abs(y - self.mean) > 3 * self.std)
 
-    def predict(self, y):
+    def calculate_new_y(self, y, b):
         for i in range(self.dimensions):
             if self.E[i] == 0 and self.W[i] == 0:
                 self.y[i] = self.alpha * y[i] + (1-self.alpha)*self.y[i]
             elif self.E[i] == 0 and self.W[i] == 1:
                 self.y[i] = self.alpha * y[i] + (1 - self.alpha) * b[i]
-            if self.E[i] == 1 and self.W[i] == 1:
-                self.y[i] = np.random(self.lag_data[i])
+            elif self.E[i] == 1 and self.W[i] == 1:
+                self.y[i] = b[i]
     #     b is a random sample
     #     yes xD
 
     def fit_and_predict(self, data):
-        self.lag_data = data[:self.lag_time]
-        self.mean = self.lag_data.mean()
-        self.std = self.lag_data.std()
 
+        lag_data = minmax_scale(data[:self.lag_time])
+        decomposed_data = self.pca.fit_transform(lag_data)
 
-    def get_gaussian(self):
-        pass
-
-    def learn(self):
-        pass
-
-    def classify(self):
+        # plt.plot(decomposed_data)
+        # plt.show()
+        # a = self.pca.components_
+        self.mean = np.apply_over_axes(np.mean, lag_data, 0)
+        self.std = np.apply_over_axes(np.std, lag_data, 0)
+        test_length = (len(data) - self.lag_time)
+        # E_results_table = np.zeros(shape=(test_length, self.dimensions))
+        # W_results_table = np.zeros(shape=(test_length, self.dimensions))
+        E_results = []
+        W_results = []
+        b = lag_data[20]
+        new_data = np.copy(data)
+        new_data = np.copy(decomposed_data)
+        for i in range(self.lag_time, test_length-1):
+            new_sample = minmax_scale(data[i])
+            new_sample = new_sample.reshape(3,1)
+            sample_reduced = (new_sample[i].T @ self.pca.components_.T).T
+            np.append(new_data, sample_reduced)
+            self.update_e_w(new_data[i])
+            self.calculate_new_y(new_data[i], b)
+            self.mean = np.apply_over_axes(np.mean, new_data[i - self.window_size:i], 0)
+            self.std = np.apply_over_axes(np.std, new_data[i - self.window_size:i], 0)
+            # E_results_table[i-self.lag_time]=self.E
+            # W_results_table[i - self.lag_time] = self.W
+            E_results.append(self.E)
+            W_results.append(self.W)
+        return E_results, W_results

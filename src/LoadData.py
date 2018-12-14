@@ -27,6 +27,7 @@ class LoadData:
         data = loadmat(file_path)
 
         t = data['t'].reshape(-1)
+
         h1 = data['h1'].reshape(-1)
         h2 = data['h2'].reshape(-1)
         h3 = data['h3'].reshape(-1)
@@ -47,7 +48,7 @@ class LoadData:
 
         return pd.DataFrame(data_merged.T, index=t, columns=['h1', 'h2', 'h3', 'v1', 'v2', 'v3', 'u', 'error']), number
 
-    def build_data_frame(self, experiments_to_exclude=[]):
+    def build_data_frame(self, experiments_to_exclude=[], experiments_to_include=[]):
         # frames = [self.load_mat_file(file_path) for file_path in self.experiments_paths]
         frames = [data for data in map(self.load_mat_file, self.experiments_paths)
                   if data[-1] not in experiments_to_exclude]
@@ -61,3 +62,9 @@ class LoadData:
         frames = [self.load_mat_file(file_path) for file_path in self.experiments_paths]
         frames_data = [frame[0] for frame in frames]
         return pd.concat(frames_data)
+
+    def build_numpy_data(self):
+        frames = [self.load_mat_file(file_path) for file_path in self.experiments_paths]
+        frames_data = [frame[0] for frame in frames]
+        frames_numbers = [frame[1] for frame in frames]
+        return np.array([frame.values for frame in frames_data])
