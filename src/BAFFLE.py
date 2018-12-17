@@ -41,8 +41,8 @@ class BAFFLE:
         # plt.plot(decomposed_data)
         # plt.show()
         # a = self.pca.components_
-        self.mean = np.apply_over_axes(np.mean, lag_data, 0)
-        self.std = np.apply_over_axes(np.std, lag_data, 0)
+        self.mean = np.apply_over_axes(np.mean, decomposed_data, 0)
+        self.std = np.apply_over_axes(np.std, decomposed_data, 0)
         test_length = (len(data) - self.lag_time)
         # E_results_table = np.zeros(shape=(test_length, self.dimensions))
         # W_results_table = np.zeros(shape=(test_length, self.dimensions))
@@ -53,9 +53,9 @@ class BAFFLE:
         new_data = np.copy(decomposed_data)
         for i in range(self.lag_time, test_length-1):
             new_sample = minmax_scale(data[i])
-            new_sample = new_sample.reshape(3,1)
-            sample_reduced = (new_sample[i].T @ self.pca.components_.T).T
-            np.append(new_data, sample_reduced)
+            new_sample = new_sample.reshape(3, 1)
+            sample_reduced = (new_sample.T @ self.pca.components_.T)
+            new_data = np.concatenate((new_data, sample_reduced))
             self.update_e_w(new_data[i])
             self.calculate_new_y(new_data[i], b)
             self.mean = np.apply_over_axes(np.mean, new_data[i - self.window_size:i], 0)

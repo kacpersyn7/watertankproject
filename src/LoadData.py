@@ -42,7 +42,8 @@ class LoadData:
         v3 = data['v3'].reshape(-1)
         v3 = 2*np.maximum(np.zeros(v3.shape), v3-0.5)
 
-        error = np.logical_or(v1 > 0, v3 > 0, v2 > 0)
+        error = np.logical_or(v1 > 0, v2 > 0)
+        error = np.logical_or(error, v3 > 0)
 
         data_merged = np.array([h1, h2, h3, v1, v2, v3, u, error])
 
