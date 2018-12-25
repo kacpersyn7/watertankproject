@@ -11,7 +11,9 @@ def normalize_df(df):
 
 experiments = LoadData.LoadData()
 data = experiments.build_data_frame()
-all_data = data['011']
+all_data = data['023']
+all_data.plot(subplots=True, figsize=(20,15))
+plt.show()
 features = ['h1', 'h2', 'h3', 'error']
 window_size = 10000
 e1 = all_data['h1'].rolling(window=window_size)
@@ -27,9 +29,9 @@ m3 = e3.mean()
 vari1 = e1.std()
 vari2 = e2.std()
 vari3 = e3.std()
-data_merged = np.array([cor12, cor13, cor23, m1, m2, m3, vari1, vari2, vari3, all_data['error']])
-df_merged = pd.DataFrame(data_merged.T, columns=['cor12', 'cor13', 'cor23', 'm1', 'm2', 'm3', 'vari1', 'vari2', 'vari3','error'])
-df_merged = df_merged.dropna()
+# data_merged = np.array([cor12, cor13, cor23, m1, m2, m3, vari1, vari2, vari3, all_data['error']])
+# df_merged = pd.DataFrame(data_merged.T, columns=['cor12', 'cor13', 'cor23', 'm1', 'm2', 'm3', 'vari1', 'vari2', 'vari3','error'])
+# df_merged = df_merged.dropna()
 # df_merged.plot(subplots=True)
 # plt.show()
 # all_data.plot(subplots=True)
@@ -37,32 +39,37 @@ df_merged = df_merged.dropna()
 
 normalize_df = normalize_df(all_data[150:300][['h1', 'h2', 'h3']])
 data = normalize_df.values
-all_data[150:260][['h1', 'h2', 'h3']].plot(subplots=True)
+# all_data[150:260][['h1', 'h2', 'h3']].plot(subplots=True)
+# plt.show()
+plt.figure(figsize=(20,10))
+data = all_data[150:400][['h1', 'h2', 'h3']].values
+plt.plot(data)
 plt.show()
-data = all_data[150:260][['h1', 'h2', 'h3']].values
 # data = all_data[['h1', 'h2', 'h3']].values
 from BAFFLE import BAFFLE
-baffle_alg = BAFFLE(5000, 2000, 0.8, 0.8)
-E, W = baffle_alg.fit_and_predict(data)
+lag_size = 3000
+window_size = 3000
+baffle_alg = BAFFLE(lag_size, window_size, k=0.5, dimensions=3)
+E, W, y_lol = baffle_alg.fit_and_predict(data)
 E_arr = np.array(E)
 W_arr = np.array(W)
-E_arr = np.concatenate((np.zeros((5000,2)), E_arr))
-W_arr = np.concatenate((np.zeros((5000,2)), W_arr))
+E_arr = np.concatenate((np.zeros((lag_size + window_size + 2000, 3)), E_arr))
+W_arr = np.concatenate((np.zeros((lag_size + window_size + 2000, 3)), W_arr))
 plt.figure()
 plt.subplot(3,1,1)
 plt.plot(E_arr[:,0])
 plt.subplot(3,1,2)
 plt.plot(E_arr[:,1])
-# plt.subplot(3,1,3)
-# plt.plot(E_arr[:,2])
+plt.subplot(3,1,3)
+plt.plot(E_arr[:,2])
 
 plt.figure()
 plt.subplot(3,1,1)
 plt.plot(W_arr[:,0])
 plt.subplot(3,1,2)
 plt.plot(W_arr[:,1])
-# plt.subplot(3,1,3)
-# plt.plot(W_arr[:,2])
+plt.subplot(3,1,3)
+plt.plot(W_arr[:,2])
 
 plt.show()
 # from sklearn.decomposition import TruncatedSVD

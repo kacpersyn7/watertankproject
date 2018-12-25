@@ -5,7 +5,7 @@ from sklearn.preprocessing import minmax_scale
 import matplotlib.pyplot as plt
 
 class BAFFLE:
-    def __init__(self, lag_time, window_size, alpha, k, dimensions=2):
+    def __init__(self, lag_time, window_size, alpha=0.5, k=0.1, dimensions=2):
         self.lag_time = lag_time
         self.window_size = window_size
         self.alpha = alpha
@@ -27,9 +27,12 @@ class BAFFLE:
             if self.E[i] == 0 and self.W[i] == 0:
                 self.y[i] = self.alpha * y[i] + (1-self.alpha)*self.y[i]
             elif self.E[i] == 0 and self.W[i] == 1:
-                self.y[i] = self.alpha * y[i] + (1 - self.alpha) * b[i]
+                index = np.random.randint(self.lag_time, size=1)[0]
+                self.y[i] = self.alpha * y[i] + (1 - self.alpha) * b[index][i]
             elif self.E[i] == 1 and self.W[i] == 1:
-                self.y[i] = b[i]
+                index = np.random.randint(self.lag_time, size=1)[0]
+                self.y[i] = b[index][i]
+
     #     b is a random sample
     #     yes xD
 
@@ -48,7 +51,8 @@ class BAFFLE:
         # W_results_table = np.zeros(shape=(test_length, self.dimensions))
         E_results = []
         W_results = []
-        b = lag_data[20]
+        y_results = []
+        b = lag_data
         new_data = np.copy(data)
         new_data = np.copy(decomposed_data)
         for i in range(self.lag_time, test_length-1):
@@ -58,10 +62,15 @@ class BAFFLE:
             new_data = np.concatenate((new_data, sample_reduced))
             self.update_e_w(new_data[i])
             self.calculate_new_y(new_data[i], b)
-            self.mean = np.apply_over_axes(np.mean, new_data[i - self.window_size:i], 0)
-            self.std = np.apply_over_axes(np.std, new_data[i - self.window_size:i], 0)
+
+            y_results.append(np.copy(self.y))
+            self.mean = np.apply_over_axes(np.mean, new_data[i - self.window_size+1:i], 0)
+
+            self.std = np.apply_over_axes(np.std, new_data[i - self.window_size+1:i], 0)
             # E_results_table[i-self.lag_time]=self.E
             # W_results_table[i - self.lag_time] = self.W
+
             E_results.append(self.E)
             W_results.append(self.W)
-        return E_results, W_results
+
+        return E_results, W_results, y_results
