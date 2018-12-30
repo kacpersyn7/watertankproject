@@ -56,8 +56,8 @@ class BAFFLE:
         new_data = np.copy(data)
         new_data = np.copy(decomposed_data)
         for i in range(self.lag_time, test_length-1):
-            new_sample = minmax_scale(data[i])
-            new_sample = new_sample.reshape(3, 1)
+#            new_sample = minmax_scale(data[i])
+            new_sample = data[i].reshape(3, 1)
             sample_reduced = (new_sample.T @ self.pca.components_.T)
             new_data = np.concatenate((new_data, sample_reduced))
             self.update_e_w(new_data[i])
