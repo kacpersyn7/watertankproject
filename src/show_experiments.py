@@ -10,7 +10,7 @@ def normalize_df(df):
     return normalized_df
 experiments = LoadData()
 tanks_data = experiments.build_data_frame()
-tanks_data['010'].plot(subplots=True)
+tanks_data['017'].plot(subplots=True)
 plt.show()
 valid_data = tanks_data['010'][400:500][['h1', 'h2', 'h3']]
 valid_data.plot(subplots=True)

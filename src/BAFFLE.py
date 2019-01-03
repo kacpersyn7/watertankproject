@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import minmax_scale
+from sklearn.neighbors import KernelDensity
 import matplotlib.pyplot as plt
 
 class BAFFLE:
@@ -53,15 +54,18 @@ class BAFFLE:
         W_results = []
         y_results = []
         b = lag_data
-        new_data = np.copy(data)
         new_data = np.copy(decomposed_data)
         for i in range(self.lag_time, test_length-1):
+            norm_dat = minmax_scale(new_data[i - self.window_size+1:i])
+            decomposed_dat = self.pca.fit_transform(norm_dat)
+            sample_reduced = decomposed_dat[-1]
 #            new_sample = minmax_scale(data[i])
-            new_sample = data[i].reshape(3, 1)
-            sample_reduced = (new_sample.T @ self.pca.components_.T)
-            new_data = np.concatenate((new_data, sample_reduced))
-            self.update_e_w(new_data[i])
-            self.calculate_new_y(new_data[i], b)
+#            new_sample = data[i].reshape(3, 1)
+#            sample_reduced = (new_sample.T @ self.pca.components_.T)
+            self.update_e_w(sample_reduced)
+            self.calculate_new_y(sample_reduced, b)
+
+            new_data = np.concatenate((new_data, self.y.reshape(self.dimensions,1).T))
 
             y_results.append(np.copy(self.y))
             self.mean = np.apply_over_axes(np.mean, new_data[i - self.window_size+1:i], 0)

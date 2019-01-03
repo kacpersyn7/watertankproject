@@ -59,8 +59,10 @@ class LoadData:
 
         return pd.concat(frames_data, axis=1, keys=frames_numbers)
 
-    def build_data_frame_without_numbers(self):
-        frames = [self.load_mat_file(file_path) for file_path in self.experiments_paths]
+    def build_data_frame_without_numbers(self, experiments_to_exclude=[], experiments_to_include=[]):
+        frames = [data for data in map(self.load_mat_file, self.experiments_paths)
+                  if data[-1] not in experiments_to_exclude]
+
         frames_data = [frame[0] for frame in frames]
         return pd.concat(frames_data)
 

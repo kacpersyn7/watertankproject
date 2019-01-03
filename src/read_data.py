@@ -1,45 +1,45 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Dec  5 01:07:05 2018
-
-@author: kacper
-"""
 import LoadData
 import pandas as pd
 import numpy as np
-
-experiments = LoadData.LoadData()
-all_data = experiments.build_data_frame_without_numbers('029')
-a = all_data.error
-all_data.error = ((a==1) & (a.shift(1500)==1) & (a.shift(-1500)))
-features = ['h1', 'h2', 'h3', 'error']
-
-e1 = all_data['h1'].rolling(window=1000, center=True)
-e2 = all_data['h2'].rolling(window=1000, center=True)
-e3 = all_data['h3'].rolling(window=1000, center=True)
-# make new features
-cor12 = e1.corr(e2)
-cor13 = e1.corr(e3)
-cor23 = e2.corr(e3)
-m1 = e1.mean()
-m2 = e2.mean()
-m3 = e3.mean()
-data_merged = np.array([cor12, cor13, cor23, m1, m2, m3, all_data['error']])
-df_merged = pd.DataFrame(data_merged.T, columns=['cor12', 'cor13', 'cor23', 'm1', 'm2', 'm3', 'error'])
-df_merged = df_merged.dropna()
-
-import seaborn as sns
 import matplotlib.pyplot as plt
+import json
+import seaborn as sns
+from scipy.stats.stats import pearsonr   
+experiments = LoadData.LoadData()
+data = experiments.build_data_frame(experiments_to_exclude=['019', '030'])
+window_size = 6000
+with open('times.json', 'r') as fp:
+    time_intervals_dict = json.load(fp)
 
-randomized = df_merged.sample(frac=0.015)
-sns.pairplot(randomized,hue="error")
+column_names = list(set([column[0] for column in data]))
+column_names.sort()
+#stationary_data.index = (stationary_data.index - min(stationary_data.index))
+num_of_features=6
+data_list = []
+window_size = 18000
+for name in time_intervals_dict: 
+    for elem in time_intervals_dict[name]:
+        three_min = data[name][elem[0]:elem[1]]
+        three_min = three_min.fillna(0)
+        num_of_error = sum(three_min.error==1)
+        if num_of_error > 0.1 * window_size:
+            error=1
+        else:
+            error=0
+        
+        data_list.append([pearsonr(three_min.h1, three_min.h2)[0], pearsonr(three_min.h1, three_min.h3)[0], pearsonr(three_min.h2, three_min.h3)[0],
+                          np.mean(three_min.h1), np.mean(three_min.h2), np.mean(three_min.h3),
+                          error])
+    
+from_list = pd.DataFrame(np.array(data_list), columns=['std_h1', 'std_h2', 'std_h3', 'mean_h1', 'mean_h2', 'mean_h3', 'error'])
+sns.pairplot(from_list,hue="error")
 plt.title("pair plot for variables")
 plt.show()
 
 from sklearn.model_selection import train_test_split
 
-train, test = train_test_split(randomized, test_size=.3, random_state=123)
+train, test = train_test_split(from_list, test_size=.3, random_state=123)
 
 train_X = train[[x for x in train.columns if x not in ["error"]]]
 train_Y = train[["error"]]
@@ -116,7 +116,7 @@ from sklearn.neural_network import MLPClassifier
 # rf=GaussianProcessClassifier(1.0 * RBF(1.0))
 
 #rf = KNeighborsClassifier(n_jobs=4, n_neighbors=7)
-rf = MLPClassifier(alpha=0.06)
+rf = GaussianNB()
 al = model(rf, train_X, train_Y, test_X, test_Y, 'none')
 
 all_data_num = experiments.build_data_frame()
@@ -124,10 +124,10 @@ all_data_num = experiments.build_data_frame()
 
 def check_error(data):
     exp15 = data
-    window=1000
-    e1 = exp15['h1'].rolling(window=window,center=True)
-    e2 = exp15['h2'].rolling(window=window,center=True)
-    e3 = exp15['h3'].rolling(window=window,center=True)
+    window=3000
+    e1 = exp15['h1'].rolling(window=window)
+    e2 = exp15['h2'].rolling(window=window)
+    e3 = exp15['h3'].rolling(window=window)
 
     cor12 = e1.corr(e2)#[window/100-0.01:]
     cor13 = e1.corr(e3)#[window/100-0.01:]
