@@ -7,7 +7,7 @@ import json
 import seaborn as sns
 from scipy.stats.stats import pearsonr   
 experiments = LoadData.LoadData()
-data = experiments.build_data_frame(experiments_to_exclude=['019', '030'])
+data = experiments.build_data_frame()
 window_size = 6000
 with open('times.json', 'r') as fp:
     time_intervals_dict = json.load(fp)
@@ -28,7 +28,7 @@ for name in time_intervals_dict:
         else:
             error=0
         
-        data_list.append([pearsonr(three_min.h1, three_min.h2)[0], pearsonr(three_min.h1, three_min.h3)[0], pearsonr(three_min.h2, three_min.h3)[0],
+        data_list.append([np.std(three_min.h1), np.std(three_min.h2), np.std(three_min.h3),
                           np.mean(three_min.h1), np.mean(three_min.h2), np.mean(three_min.h3),
                           error])
     
@@ -68,13 +68,13 @@ def model(algorithm, dtrain_x, dtrain_y, dtest_x, dtest_y, of_type):
     sns.heatmap(confusion_matrix(dtest_y, predictions), annot=True, fmt="d", linecolor="k", linewidths=3)
     plt.title("CONFUSION MATRIX", fontsize=20)
 
-    predicting_probabilites = algorithm.predict_proba(dtest_x)[:, 1]
-    fpr, tpr, thresholds = roc_curve(dtest_y, predicting_probabilites)
-    plt.subplot(222)
-    plt.plot(fpr, tpr, label=("Area_under the curve :", auc(fpr, tpr)), color="r")
-    plt.plot([1, 0], [1, 0], linestyle="dashed", color="k")
-    plt.legend(loc="best")
-    plt.title("ROC - CURVE & AREA UNDER CURVE", fontsize=20)
+#    predicting_probabilites = algorithm.predict_proba(dtest_x)[:, 1]
+#    fpr, tpr, thresholds = roc_curve(dtest_y, predicting_probabilites)
+#    plt.subplot(222)
+#    plt.plot(fpr, tpr, label=("Area_under the curve :", auc(fpr, tpr)), color="r")
+#    plt.plot([1, 0], [1, 0], linestyle="dashed", color="k")
+#    plt.legend(loc="best")
+#    plt.title("ROC - CURVE & AREA UNDER CURVE", fontsize=20)
 
     if of_type == "feat":
 
@@ -106,7 +106,7 @@ from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import GaussianNB
+# from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -116,7 +116,7 @@ from sklearn.neural_network import MLPClassifier
 # rf=GaussianProcessClassifier(1.0 * RBF(1.0))
 
 #rf = KNeighborsClassifier(n_jobs=4, n_neighbors=7)
-rf = GaussianNB()
+rf = SVC()
 al = model(rf, train_X, train_Y, test_X, test_Y, 'none')
 
 all_data_num = experiments.build_data_frame()
@@ -129,9 +129,13 @@ def check_error(data):
     e2 = exp15['h2'].rolling(window=window)
     e3 = exp15['h3'].rolling(window=window)
 
-    cor12 = e1.corr(e2)#[window/100-0.01:]
-    cor13 = e1.corr(e3)#[window/100-0.01:]
-    cor23 = e2.corr(e3)#[window/100-0.01:]
+    cor12 = e1.std()
+    cor13 = e2.std()
+    cor23 = e3.std()
+
+#    cor12 = e1.corr(e2)#[window/100-0.01:]
+#    cor13 = e1.corr(e3)#[window/100-0.01:]
+#    cor23 = e2.corr(e3)#[window/100-0.01:]
     m1 = e1.mean()#[window/100-0.01:]
     m2 = e2.mean()#[window/100-0.01:]
     m3 = e3.mean()#[window/100-0.01:]

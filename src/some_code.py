@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 experiments = LoadData.LoadData()
-all_data = experiments.build_data_frame_without_numbers('029')
+all_data = experiments.build_data_frame_without_numbers(['019','018'])
 a = all_data.error
 all_data.error = ((a==1) & (a.shift(1500)==1) & (a.shift(-1500)))
 features = ['h1', 'h2', 'h3', 'error']
@@ -19,9 +19,9 @@ e1 = all_data['h1'].rolling(window=1000, center=True)
 e2 = all_data['h2'].rolling(window=1000, center=True)
 e3 = all_data['h3'].rolling(window=1000, center=True)
 # make new features
-cor12 = e1.corr(e2)
-cor13 = e1.corr(e3)
-cor23 = e2.corr(e3)
+cor12 = e1.std()#[window/100-0.01:]
+cor13 = e2.std()#[window/100-0.01:]
+cor23 = e3.std()#[window/100-0.01:]
 m1 = e1.mean()
 m2 = e2.mean()
 m3 = e3.mean()
@@ -116,7 +116,8 @@ from sklearn.neural_network import MLPClassifier
 # rf=GaussianProcessClassifier(1.0 * RBF(1.0))
 
 #rf = KNeighborsClassifier(n_jobs=4, n_neighbors=7)
-rf = MLPClassifier(alpha=0.06)
+#rf = MLPClassifier(alpha=0.06)
+rf = SVC(probability=True)
 al = model(rf, train_X, train_Y, test_X, test_Y, 'none')
 
 all_data_num = experiments.build_data_frame()
@@ -129,9 +130,9 @@ def check_error(data):
     e2 = exp15['h2'].rolling(window=window,center=True)
     e3 = exp15['h3'].rolling(window=window,center=True)
 
-    cor12 = e1.corr(e2)#[window/100-0.01:]
-    cor13 = e1.corr(e3)#[window/100-0.01:]
-    cor23 = e2.corr(e3)#[window/100-0.01:]
+    cor12 = e1.std()#[window/100-0.01:]
+    cor13 = e2.std()#[window/100-0.01:]
+    cor23 = e3.std()#[window/100-0.01:]
     m1 = e1.mean()#[window/100-0.01:]
     m2 = e2.mean()#[window/100-0.01:]
     m3 = e3.mean()#[window/100-0.01:]

@@ -15,7 +15,7 @@ column_names.sort()
 time_intervals_dict = {}
 for name in column_names: 
     all_data=data[name]
-    all_data.plot(subplots=True, figsize=(20,15))
+    all_data.plot(subplots=True, figsize=(20,15), xticks=np.arange(0, 1800, 50), grid=True)
     e1 = all_data['h1'].rolling(window=window_size)
     e2 = all_data['h2'].rolling(window=window_size)
     e3 = all_data['h3'].rolling(window=window_size)
@@ -34,7 +34,8 @@ for name in column_names:
         start = int(start)
         if start == 0:
             break
-        end = start + 180
+        end = input("type end time ")
+        end = int(end)
         time_intervals_dict[name].append((start, end))
     print(time_intervals_dict)
     

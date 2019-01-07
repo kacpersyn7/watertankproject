@@ -47,7 +47,7 @@ class LoadData:
 
         data_merged = np.array([h1, h2, h3, v1, v2, v3, u, error])
 
-        return pd.DataFrame(data_merged.T, index=t, columns=['h1', 'h2', 'h3', 'v1', 'v2', 'v3', 'u', 'error']), number
+        return pd.DataFrame(data_merged.T, index=t, columns=['h1', 'h2', 'h3', 'v1', 'v2', 'v3', 'u', 'error']).dropna(), number
 
     def build_data_frame(self, experiments_to_exclude=[], experiments_to_include=[]):
         # frames = [self.load_mat_file(file_path) for file_path in self.experiments_paths]
