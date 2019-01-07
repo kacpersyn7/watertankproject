@@ -5,16 +5,16 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import json
-import seaborn as sns
-from scipy.stats.stats import pearsonr
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_curve, auc
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 
 
 def verif(dtest_y, predictions):
-    print("\naccuracy_score :", accuracy_score(dtest_y, predictions))
-    a = classification_report(dtest_y, predictions, output_dict = True)
+    acc = accuracy_score(dtest_y, predictions)
+    print("\naccuracy_score :", acc)
+    report = classification_report(dtest_y, predictions, output_dict=True)
 #    print("\nclassification report :\n", (a))
-    return a
+    return acc, report
 
 #    plt.figure(figsize=(13, 10))
 #    plt.subplot(221)
@@ -27,20 +27,37 @@ k = 0.9
 alpha = 0.5
 lag_size = 3000
 window_size = 3000
+edz = 1000
 baffle_alg = BAFFLE(lag_size, window_size, k=k, alpha=alpha, explained_variance_ratio=0.95)
 
 with open('time_intervals.json', 'r') as fp:
     time_intervals_dict = json.load(fp)
 features = ['h1', 'h2', 'h3']
-column_names = list(set([column[0] for column in data]))
+# column_names = list(set([column[0] for column in data]))
+column_names = list(time_intervals_dict.keys())
 column_names.sort()
+column_names.insert(0, column_names.pop(column_names.index('014')))
+column_names.insert(0, column_names.pop(column_names.index('013')))
+column_names.insert(0, column_names.pop(column_names.index('012')))
+column_names.insert(0, column_names.pop(column_names.index('011')))
+column_names.insert(0, column_names.pop(column_names.index('009')))
+column_names.insert(0, column_names.pop(column_names.index('008')))
+# column_names.insert(0, column_names.pop(column_names.index('006')))
+column_names.insert(0, column_names.pop(column_names.index('004')))
+
+
 # stationary_data.index = (stationary_data.index - min(stationary_data.index))
 i = 0
 data_list = []
 metrics = []
-for name in time_intervals_dict:
+times_real = []
+times_predicted = []
+cnt = []
+for name in column_names:
+    j = 0
     for elem in time_intervals_dict[name]:
         i+=1
+        j+=1
         three_min = data[name][elem[0]:elem[1]]
         three_min = three_min.fillna(0)
         three_min.index = (three_min.index - min(three_min.index))
@@ -84,10 +101,11 @@ for name in time_intervals_dict:
         elif name == '030':
             if elem[0] == 1600:
                 k_er = 2000
-        three_min.error = ((a==1) & (a.shift(100)==1) | (a.shift(k_er)) | (a.shift(k_er//2)))
+        three_min.error = ((a==1) & (a.shift(15)==1) | (a.shift(k_er)) | (a.shift(k_er//2)))
 #        three_min.plot(figsize=(10,6))
          # plt.plot(three_min)
         dtest_y = three_min['error'].values[lag_size:]
+
         E, W, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(three_min[features].values)
         E_arr = np.array(E)
         W_arr = np.array(W)
@@ -109,8 +127,14 @@ for name in time_intervals_dict:
                                    np.logical_and(W_arr[:, 0], W_arr[:, 2]),
                                    np.logical_and(W_arr[:, 2], W_arr[:, 1]))
         result = result[lag_size:]
-        met_dict = verif(dtest_y, result.astype(int))["True"]
-        metrics.append(' '.join([met_dict['precision'], met_dict['recall'], met_dict['f1-score']]))
+        first_real = np.argmax(dtest_y == True)
+        first_predicted = np.argmax(result == True)
+        times_real.append(first_real)
+        times_predicted.append(first_predicted)
+        acc = accuracy_score(dtest_y, result)
+        print("\naccuracy_score :", acc)
+        metrics.append(' '.join(["{0:.2f}".format(acc), "{0:.2f}".format(precision_score(dtest_y, result)), "{0:.2f}".format(recall_score(dtest_y, result)), "{0:.2f}".format(f1_score(dtest_y, result))]))
+    cnt.append(j)
 #        plt.plot(result)
         # for i in range(dim):
         #     plt.subplot(3, 1, i + 1)
@@ -145,6 +169,10 @@ for name in time_intervals_dict:
 #        input("next")
 name = '_'.join([str(k), str(alpha),'.txt'])
 with open(name, 'w') as f:
-    f.writelines("0.19      1.00      0.32")
-    f.writelines("\n")
-    f.writelines("0.19      1.00      0.32")
+    for line in metrics:
+        f.writelines(line)
+        f.writelines("\n")
+with open('aa' + name, 'w') as f:
+    for x, y in zip(times_real, times_predicted):
+        f.writelines(' '.join([str(x), str(y)]))
+        f.writelines("\n")
