@@ -17,6 +17,7 @@ class BAFFLE:
         # decomposed_data = lag_data
         decomposed_data = self.pca.fit_transform(lag_data)
         self.dimensions = self.pca.n_components_
+        # self.dimensions = 3
         self.E = np.zeros(shape=self.dimensions)
         self.W = np.zeros(shape=self.dimensions)
         self.mean = np.zeros(shape=self.dimensions)
