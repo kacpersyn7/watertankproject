@@ -1,5 +1,6 @@
 import LoadData
 from BAFFLE import BAFFLE
+from MahClassifer import MahClassifer
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -69,7 +70,7 @@ params = [{'k': 0.9, 'a': 0.25, 'var': 0.7},
           {'k': 0.9, 'a': 0.5, 'var': 0.95}]
 params2 = [{'k': 10, 'a': 0.25, 'var': 0.7},
            {'k': 10, 'a': 0.25, 'var': 0.95}]
-k = 10
+k = 8
 alpha = 0.25
 lag_size = 2000
 window_size = 2000
@@ -111,7 +112,7 @@ all_results = []
 # alpha = par['a']
 # variance_ratio = par['var']
 baffle_alg = BAFFLE(lag_size, window_size, k=k, alpha=alpha, explained_variance_ratio=variance_ratio)
-
+mah_classifer = MahClassifer(lag_size, window_size)
 for name in column_names:
     for elem in time_intervals_dict[name]:
         three_min = data[name][elem[0]:elem[1]]
@@ -162,28 +163,30 @@ for name in column_names:
          # plt.plot(three_min)
         dtest_y = three_min['error'].values[lag_size:]
 
-        E, W, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(three_min[features].values)
-        E_arr = np.array(E)
-        W_arr = np.array(W)
-        std_results = np.array(std_results)
-        mean_results = np.array(mean_results)
-        dim = E_arr.shape[1]
-        E_arr = np.concatenate((np.zeros((lag_size, dim)), E_arr))
-        W_arr = np.concatenate((np.zeros((lag_size, dim)), W_arr))
-        std_results = np.concatenate((np.tile(std_results[0,:], (lag_size,1)), std_results))
-        mean_results = np.concatenate((np.tile(mean_results[0,:], (lag_size,1)), mean_results))
-#        plt.figure()
+        # E, W, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(three_min[features].values)
+        # E_arr = np.array(E)
+        # W_arr = np.array(W)
+        result_mah = mah_classifer.fit_and_predict(three_min[features])
+        # std_results = np.array(std_results)
+        # mean_results = np.array(mean_results)
+        # dim = E_arr.shape[1]
+        # E_arr = np.concatenate((np.zeros((lag_size, dim)), E_arr))
+        # W_arr = np.concatenate((np.zeros((lag_size, dim)), W_arr))
+        # std_results = np.concatenate((np.tile(std_results[0,:], (lag_size,1)), std_results))
+        # mean_results = np.concatenate((np.tile(mean_results[0,:], (lag_size,1)), mean_results))
+       # plt.figure()
 #         result = W_arr[:, 0]
-        if dim == 1:
-            result = W_arr[:, 0]
-        elif dim == 2:
-            result = np.logical_and(W_arr[:, 0], W_arr[:, 1])
-        else:
-            result = np.logical_or(np.logical_and(W_arr[:, 0], W_arr[:, 1]),
-                                   np.logical_and(W_arr[:, 0], W_arr[:, 2]),
-                                   np.logical_and(W_arr[:, 2], W_arr[:, 1]))
+#         if dim == 1:
+#             result = W_arr[:, 0]
+#         elif dim == 2:
+#             result = np.logical_and(W_arr[:, 0], W_arr[:, 1])
+#         else:
+#             result = np.logical_or(np.logical_and(W_arr[:, 0], W_arr[:, 1]),
+#                                    np.logical_and(W_arr[:, 0], W_arr[:, 2]),
+#                                    np.logical_and(W_arr[:, 2], W_arr[:, 1]))
         # for i in range(dim):
         #     result = np.logical_or(result, W_arr[:, i])
+        result = result_mah
         result = result[lag_size:]
         first_real = np.argmax(dtest_y == True)
         first_predicted = np.argmax(result == True)
@@ -227,18 +230,18 @@ for name in column_names:
 
 #        input("next")
 
-name = '_'.join([str(k), str(alpha), str(variance_ratio)])
-detection_time_results = create_confusion_from_times(times_real, times_predicted, edz, name)
+# name = '_'.join([str(k), str(alpha), str(variance_ratio)])
+# detection_time_results = create_confusion_from_times(times_real, times_predicted, edz, name)
 summary = verif(np.concatenate(all_test, axis=None), np.concatenate(all_results, axis=None), name)
-with open(path+'_summary_' + name+'_.txt', 'w') as f:
-    f.writelines(summary)
-with open(path+'_edz_' + name+'_.txt', 'w') as f:
-    f.writelines(detection_time_results)
-with open(path+name+'_.txt', 'w') as f:
-    for line in metrics:
-        f.writelines(line)
-        f.writelines("\n")
-with open(path+'_dt_' + name+'_.txt', 'w') as f:
-    for x, y in zip(times_real, times_predicted):
-        f.writelines(' '.join([str(x), str(y), str(abs(x-y))]))
-        f.writelines("\n")
+# with open(path+'_summary_' + name+'_.txt', 'w') as f:
+#     f.writelines(summary)
+# with open(path+'_edz_' + name+'_.txt', 'w') as f:
+#     f.writelines(detection_time_results)
+# with open(path+name+'_.txt', 'w') as f:
+#     for line in metrics:
+#         f.writelines(line)
+#         f.writelines("\n")
+# with open(path+'_dt_' + name+'_.txt', 'w') as f:
+#     for x, y in zip(times_real, times_predicted):
+#         f.writelines(' '.join([str(x), str(y), str(abs(x-y))]))
+#         f.writelines("\n")
