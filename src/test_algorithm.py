@@ -163,10 +163,10 @@ for name in column_names:
          # plt.plot(three_min)
         dtest_y = three_min['error'].values[lag_size:]
 
-        # E, W, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(three_min[features].values)
+        result, E_arr, W_arr, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(three_min[features].values)
         # E_arr = np.array(E)
         # W_arr = np.array(W)
-        result_mah = mah_classifer.fit_and_predict(three_min[features])
+        # result_mah = mah_classifer.fit_and_predict(three_min[features])
         # std_results = np.array(std_results)
         # mean_results = np.array(mean_results)
         # dim = E_arr.shape[1]
@@ -186,7 +186,7 @@ for name in column_names:
 #                                    np.logical_and(W_arr[:, 2], W_arr[:, 1]))
         # for i in range(dim):
         #     result = np.logical_or(result, W_arr[:, i])
-        result = result_mah
+        # result = result_mah
         result = result[lag_size:]
         first_real = np.argmax(dtest_y == True)
         first_predicted = np.argmax(result == True)
