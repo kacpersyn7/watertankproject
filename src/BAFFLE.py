@@ -68,8 +68,8 @@ class BAFFLE:
         return result
 
     def update_e_w(self, y):
-        self.W = (np.abs(y - self.mean) > (self.k+3)*self.std).reshape(self.dimensions)
-        self.E = (np.abs(y - self.mean) > 3 * self.std).reshape(self.dimensions)
+        self.W = (np.abs(y - self.mean) > (self.k+4)*self.std).reshape(self.dimensions)
+        self.E = (np.abs(y - self.mean) > 4 * self.std).reshape(self.dimensions)
 
     def calculate_new_y(self, y, b):
         for i in range(self.dimensions):
@@ -109,7 +109,7 @@ class BAFFLE:
         std_results = np.tile(self.std, (len(data), 1))
         mean_results = np.tile(self.mean, (len(data), 1))
 
-        b = decomposed_data
+        b = np.copy(decomposed_data)
         new_data = np.copy(decomposed_data)
         all_data = np.concatenate((new_data, np.zeros((test_size, self.dimensions))))
         projection_results = np.concatenate((new_data, np.zeros((test_size, self.dimensions))))
@@ -123,8 +123,8 @@ class BAFFLE:
             all_data[i] = self.y.reshape(self.dimensions, 1).T
             projection_results[i] = sample_reduced.reshape(self.dimensions, 1).T
 
-            self.mean = np.apply_over_axes(np.mean, new_data[i - self.window_size+1:i], 0).reshape(self.dimensions)
-            self.std = np.apply_over_axes(np.std, new_data[i - self.window_size+1:i], 0).reshape(self.dimensions)
+            self.mean = np.apply_over_axes(np.mean, all_data[i - self.window_size+1:i], 0).reshape(self.dimensions)
+            self.std = np.apply_over_axes(np.std, all_data[i - self.window_size+1:i], 0).reshape(self.dimensions)
 
             std_results[i] = self.std
             mean_results[i] = self.mean
