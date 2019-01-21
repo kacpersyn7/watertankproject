@@ -46,7 +46,8 @@ def create_confusion_from_times(times_real, times_predicted, edz=1000, name=''):
     conf_mat.savefig(path + name + '_macierzpomylekedz.png')
     return results
 
-def verif(dtest_y, predictions, name):
+
+def verify(dtest_y, predictions, name):
     acc = accuracy_score(dtest_y, predictions)
     print("\naccuracy_score :", acc)
     report = classification_report(dtest_y, predictions)
@@ -87,54 +88,57 @@ for filename in os.listdir(path_to_data):
     data.append((filename, pd.read_csv(path_to_data + filename)))
 # stationary_data.index = (stationary_data.index - min(stationary_data.index))
 # i = 0
-# data_list = []
-# metrics = []
-# times_real = []
-# times_predicted = []
-# all_test = []
-# all_results = []
-# for par in params2:
 data_list = []
 metrics = []
 times_real = []
 times_predicted = []
 all_test = []
 all_results = []
-# k = par['k']
-# alpha = par['a']
-# variance_ratio = par['var']
-baffle_alg = BAFFLE(lag_size, window_size, k=k, alpha=alpha, explained_variance_ratio=variance_ratio, voting_mode='majority', pca_mode='normal')
-mah_classifer = MahClassifer(lag_size, window_size)
-for info in data:
-    part_data = info[1]
-    dtest_y = part_data['error'].values[lag_size:]
+for par in params:
+    data_list = []
+    metrics = []
+    times_real = []
+    times_predicted = []
+    all_test = []
+    all_results = []
+    k = par['k']
+    alpha = par['a']
+    variance_ratio = par['var']
+    pca_mode = par['pca_mode']
+    voting_mode = par['voting_mode']
+    features = ['h1', 'h2', 'h3']
+    baffle_alg = BAFFLE(lag_size, window_size, k=k, alpha=alpha, explained_variance_ratio=variance_ratio, voting_mode=voting_mode, pca_mode=pca_mode)
+    # mah_classifer = MahClassifer(lag_size, window_size)
 
-    result, E_arr, W_arr, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(part_data[features].values)
+    for info in data:
+        part_data = info[1]
+        dtest_y = part_data['error'].values[lag_size:]
 
-    result = result[lag_size:]
-    first_real = np.argmax(dtest_y == True)
-    first_predicted = np.argmax(result == True)
-    times_real.append(first_real)
-    times_predicted.append(first_predicted)
-    acc = accuracy_score(dtest_y, result)
-    print("\naccuracy_score :", acc)
-    metrics.append(' '.join(["{0:.2f}".format(acc), "{0:.2f}".format(precision_score(dtest_y, result)), "{0:.2f}".format(recall_score(dtest_y, result)), "{0:.2f}".format(f1_score(dtest_y, result))]))
-    all_results.append(result)
-    all_test.append(dtest_y)
+        result, E_arr, W_arr, y, std_results, mean_results, projection_results = baffle_alg.fit_and_predict(part_data[features].values)
 
+        result = result[lag_size:]
+        first_real = np.argmax(dtest_y == True)
+        first_predicted = np.argmax(result == True)
+        times_real.append(first_real)
+        times_predicted.append(first_predicted)
+        acc = accuracy_score(dtest_y, result)
+        print("\naccuracy_score :", acc)
+        metrics.append(' '.join(["{0:.2f}".format(acc), "{0:.2f}".format(precision_score(dtest_y, result)), "{0:.2f}".format(recall_score(dtest_y, result)), "{0:.2f}".format(f1_score(dtest_y, result))]))
+        all_results.append(result)
+        all_test.append(dtest_y)
 
-name = '_'.join([str(k), str(alpha), str(variance_ratio), str(pca_mode), str(voting_mode)])
-detection_time_results = create_confusion_from_times(times_real, times_predicted, edz, name)
-summary = verif(np.concatenate(all_test, axis=None), np.concatenate(all_results, axis=None), name)
-with open(path+'_summary_' + name+'_.txt', 'w') as f:
-    f.writelines(summary)
-with open(path+'_edz_' + name+'_.txt', 'w') as f:
-    f.writelines(detection_time_results)
-with open(path+name+'_.txt', 'w') as f:
-    for line in metrics:
-        f.writelines(line)
-        f.writelines("\n")
-with open(path+'_dt_' + name+'_.txt', 'w') as f:
-    for x, y in zip(times_real, times_predicted):
-        f.writelines(' '.join([str(x), str(y), str(abs(x-y))]))
-        f.writelines("\n")
+    name = '_'.join([str(k), str(alpha), str(variance_ratio), str(pca_mode), str(voting_mode)])
+    detection_time_results = create_confusion_from_times(times_real, times_predicted, edz, name)
+    summary = verify(np.concatenate(all_test, axis=None), np.concatenate(all_results, axis=None), name)
+    with open(path+'_summary_' + name+'_.txt', 'w') as f:
+        f.writelines(summary)
+    with open(path+'_edz_' + name+'_.txt', 'w') as f:
+        f.writelines(detection_time_results)
+    with open(path+name+'_.txt', 'w') as f:
+        for line in metrics:
+            f.writelines(line)
+            f.writelines("\n")
+    with open(path+'_dt_' + name+'_.txt', 'w') as f:
+        for x, y in zip(times_real, times_predicted):
+            f.writelines(' '.join([str(x), str(y), str(abs(x-y))]))
+            f.writelines("\n")
