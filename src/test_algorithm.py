@@ -1,6 +1,5 @@
 import LoadData
 from BAFFLE import BAFFLE
-from MahClassifer import MahClassifer
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -63,14 +62,14 @@ def verify(dtest_y, predictions, name):
     return results
 
 
-params = [{'k': 0.9, 'a': 0.25, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
-          {'k': 0.9, 'a': 0.5, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
-          {'k': 0.9, 'a': 0.75, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
-          {'k': 0.3, 'a': 0.5, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
-          {'k': 5, 'a': 0.5, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
-          {'k': 0.9, 'a': 0.5, 'var': 0.95, 'voting_mode': 'majority', 'pca_mode': 'normal'},
-          {'k': 10, 'a': 0.25, 'var': 0.7, 'voting_mode': 'or', 'pca_mode': 'normal'},
-          {'k': 10, 'a': 0.25, 'var': 0.95, 'voting_mode': 'or', 'pca_mode': 'normal'},
+params = [#{'k': 0.9, 'a': 0.25, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
+          # {'k': 0.9, 'a': 0.5, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
+          # {'k': 0.9, 'a': 0.75, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
+          # {'k': 0.3, 'a': 0.5, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
+          # {'k': 5, 'a': 0.5, 'var': 0.7, 'voting_mode': 'majority', 'pca_mode': 'normal'},
+          # {'k': 0.9, 'a': 0.5, 'var': 0.95, 'voting_mode': 'majority', 'pca_mode': 'normal'},
+          # {'k': 10, 'a': 0.25, 'var': 0.7, 'voting_mode': 'or', 'pca_mode': 'normal'},
+          # {'k': 10, 'a': 0.25, 'var': 0.95, 'voting_mode': 'or', 'pca_mode': 'normal'},
           {'k': 10, 'a': 0.25, 'var': 1, 'voting_mode': 'or', 'pca_mode': 'none'}]
 
 k = 0.25
@@ -85,7 +84,7 @@ features = ['h1', 'h2', 'h3']
 
 data = []
 for filename in os.listdir(path_to_data):
-    data.append((filename, pd.read_csv(path_to_data + filename)))
+    data.append((filename, pd.read_csv(path_to_data + filename, index_col=0)))
 # stationary_data.index = (stationary_data.index - min(stationary_data.index))
 # i = 0
 data_list = []

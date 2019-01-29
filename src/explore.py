@@ -13,6 +13,7 @@ path = '../img/'
 Calculate the autocovarriance coefficient.
 '''
 
+
 def autocovariance(Xi, k=5):
     N = np.size(Xi)
     Xs = np.average(Xi)
@@ -27,35 +28,57 @@ def normalize_df(df):
     normalized_df = (df - df.min()) / (df.max() - df.min())
     return normalized_df
 
+
 def iterate_over_data(data):
     column_names = list(set([column[0] for column in data]))
     column_names.sort()
     for name in column_names:
         print(data[name].head())
 
+
+def boxplots_over_data(df, window_size=1000):
+    features = ['h1', 'h2', 'h3']
+    h1_data = df['h1'].values
+    h2_data = df['h2'].values
+    h3_data = df['h2'].values
+
+    boxplot_groups = pd.DataFrame()
+    for i in range(0, len(h1_data)-window_size, window_size):
+        boxplot_groups[i] = h1_data[i:i + window_size]
+
+    boxplot_groups.boxplot()
+    plt.show()
+
+
 def visualize(df,fname=None):
+
     features = ['h1', 'h2', 'h3']
     features_to_show = ['h1 (cm)', 'h2 (cm)', 'h3 (cm)']
+
     df_plot = df[features].plot(subplots=True, legend=False, grid=True)
     for i, name in enumerate(features_to_show):
         df_plot[i].set_ylabel(name)
     plt.xlabel('czas (s)')
-    plt.show()
     df_plot=df_plot[0].get_figure()
-    #histograms 
+    # plt.show()
+
+    #histograms
+    plt.figure()
     for feature in features: 
         hist_plot = sns.distplot(df[feature], axlabel='wysokość (cm)', kde=False, label=feature)
     plt.legend()
     hist_plot = hist_plot.get_figure()
-    plt.show()
-    
-    sns.pairplot(df[features])
-    
-    plt.show()
+    # plt.show()
+
+    pair_plot = sns.pairplot(df[features])
+    # 
+    # plt.show()
+    plt.figure()
+
     box_plot = sns.boxplot(data=df[features], width=0.2, showfliers=False)
     box_plot = box_plot.get_figure()
 
-    plt.show()
+    # plt.show()
 
     normalized_df = normalize_df(df[features])
     reduced_np = pca.fit_transform(normalized_df.values)
@@ -63,18 +86,21 @@ def visualize(df,fname=None):
     reduced_df = pd.DataFrame(reduced_np, columns=['x', 'y'])
     # density plot with histograms (KDE)
 
+
     dist_hex_plot = sns.jointplot("x", "y", data=reduced_df, kind='hex', height=10)
-    plt.show()
+    # plt.show()
 
     dist_plot = sns.jointplot("x", "y", data=reduced_df, kind="kde", space=0, color="g", height=10)
+    # plt.show()
+
     plt.show()
-    
     if fname is not None:
         df_plot.savefig(path + 'wysokosci_' + fname + '.png')
         hist_plot.savefig(path + 'histogramy_' + fname + '.png')
         box_plot.savefig(path + 'boxploty_' + fname + '.png')
         dist_hex_plot.savefig(path + 'hex_' + fname + '.png')
         dist_plot.savefig(path + 'dist_' + fname + '.png')
+
 
 features = ['h1', 'h2', 'h3', 'v1', 'v2', 'v3', 'u']
 experiments = LoadData.LoadData()
@@ -91,14 +117,14 @@ all_data = data['009']
 
 event_data = all_data[210:270]
 event_data.index = (event_data.index - min(event_data.index))
-even_plot=event_data[features].plot(subplots=True, legend=False, figsize=(10,10), grid=True, lw=3)
+even_plot=all_data[features].plot(subplots=True, legend=False, figsize=(10,10), grid=True, lw=3)
 
 features_to_show = ['h1 (cm)', 'h2 (cm)', 'h3 (cm)', 'v1', 'v2', 'v3', 'u']
 
 for i, name in enumerate(features_to_show):
     even_plot[i].set_ylabel(name)
 for i in range(0,3):
-    even_plot[i].set_ylim(0,9)
+    even_plot[i].set_ylim(0,30)
 for i in range(3,7):
     even_plot[i].set_ylim(0,1)
 
@@ -145,7 +171,7 @@ from sklearn.cross_validation import LeaveOneOut
 from sklearn.neighbors import KernelDensity
 x=stationary_data['h1'].values
 plt.figure()
-hist = plt.hist(x, bins=30, normed=True)
+hist = plt.hist(x, normed=True)
 density, bins, patches = hist
 x_d = np.linspace(min(bins), max(bins), 1000)
 #bandwidths = 10 ** np.linspace(-2, 0, 100)

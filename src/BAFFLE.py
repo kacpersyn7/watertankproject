@@ -38,15 +38,21 @@ class BAFFLE:
     def fit(self, lag_data):
         if self.pca_mode == 'partial':
             self.pca.partial_fit(lag_data)
-        else:
+            self.dimensions = self.pca.n_components_
+        elif self.pca_mode == 'normal':
             self.pca.fit(lag_data)
-        self.dimensions = self.pca.n_components_
+            self.dimensions = self.pca.n_components_
+        else:
+            self.dimensions = 3
         self.init_variables()
 
     def fit_transform(self, lag_data):
         normalized_lag_data = lag_data/self.normalize_ratio
         self.fit(normalized_lag_data)
-        return self.pca.transform(normalized_lag_data)
+        if self.pca_mode == 'none':
+            return normalized_lag_data
+        else:
+            return self.pca.transform(normalized_lag_data)
 
     def partial_fit(self, lag_data):
         self.pca.partial_fit(lag_data/self.normalize_ratio)
@@ -68,8 +74,8 @@ class BAFFLE:
         return result
 
     def update_e_w(self, y):
-        self.W = (np.abs(y - self.mean) > (self.k+4)*self.std).reshape(self.dimensions)
-        self.E = (np.abs(y - self.mean) > 4 * self.std).reshape(self.dimensions)
+        self.W = (np.abs(y - self.mean) > (self.k+3)*self.std).reshape(self.dimensions)
+        self.E = (np.abs(y - self.mean) > 3 * self.std).reshape(self.dimensions)
 
     def calculate_new_y(self, y, b):
         for i in range(self.dimensions):
